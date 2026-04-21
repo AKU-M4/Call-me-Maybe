@@ -1,0 +1,90 @@
+Core Concepts to Learn
+1. How LLMs Work (Tokenization → Logits → Token Selection)
+This is the foundation of the whole project. You need to understand:
+
+How text gets broken into tokens (BPE/SentencePiece)
+What logits are and how they represent probability distributions
+How autoregressive generation works (token by token)
+
+Resources:
+
+Andrej Karpathy — "Let's build the GPT Tokenizer" (YouTube) — best hands-on intro to tokenization
+3Blue1Brown — "But what is a GPT?" (YouTube) — visual intuition for the full pipeline
+Hugging Face NLP Course — Tokenizers chapter — practical and clear
+
+
+2. Constrained Decoding (the heart of this project)
+This is the hardest and most important concept. You need to understand how to intercept the logits at each generation step and mask out tokens that would violate your JSON schema.
+Resources:
+
+Lilian Weng — "Constrained Decoding" — excellent conceptual overview
+Outlines library source code — even though you can't use it, reading how it works is gold
+Blog: "Guaranteed Valid JSON from LLMs" — practical walkthrough of the idea
+"Efficient Guided Generation for LLMs" (arxiv) — the academic paper behind the technique
+
+The mental model: at each step, build a set of valid next tokens based on where you are in the JSON structure, set everything else to -inf, then let the model pick.
+
+3. JSON Schema Validation
+You need to know JSON Schema well enough to programmatically enforce it during generation.
+Resources:
+
+json-schema.org — Getting Started — official, clear
+Python jsonschema library docs
+
+
+4. Python — Project-Specific Skills
+Pydantic (mandatory for this project):
+
+Pydantic official docs — Getting Started
+Real Python — Pydantic tutorial
+
+Type hints + mypy:
+
+mypy cheat sheet
+Python docs — typing module
+
+flake8 (linting):
+
+flake8 docs
+
+uv (package manager used in this project):
+
+uv docs
+
+argparse (for the CLI arguments):
+
+Python docs — argparse
+
+
+5. Function Calling Concepts
+Understand what function calling actually is at the API level before you implement it from scratch.
+Resources:
+
+OpenAI Function Calling docs — best conceptual reference even if you're not using OpenAI
+Anthropic Tool Use docs — another clear example
+
+
+6. Makefile Basics
+
+Makefile tutorial — 20-minute read, covers everything you need
+
+
+Suggested Learning Order
+
+LLM fundamentals (tokenization, logits, generation loop) — don't skip this, the whole project depends on it
+JSON + JSON Schema — you need this to know what "valid at this position" means
+Constrained decoding — once you understand 1 and 2, this clicks
+Pydantic + type hints — relatively quick to pick up
+uv, flake8, mypy, Makefile — tooling, learn as you go
+
+
+Key Implementation Insight
+The core loop you'll build looks like this:
+for each generation step:
+    1. get logits from the model (using llm_sdk)
+    2. figure out which tokens are valid *right now* based on JSON state
+    3. set invalid token logits to -inf
+    4. pick the highest remaining logit
+    5. append that token and repeat
+The trickiest part is step 2 — you need a state machine or parser that tracks where you are in the JSON structure (inside a string? inside a number? expecting a key?). Study how the outlines library builds its FSM (finite state machine) for this — even if you can't use it, the approach is exactly what you need to replicate.
+Good luck — this is a genuinely interesting project once the pieces click together!

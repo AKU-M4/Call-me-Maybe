@@ -1,0 +1,15 @@
+[project]
+name = "call-me-maybe"
+version = "1"
+description = ""
+authors = [
+    {name = "adkaid-s"}
+]
+requires-python = ">=3.10"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
