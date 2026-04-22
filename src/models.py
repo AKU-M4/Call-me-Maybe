@@ -1,11 +1,26 @@
 from typing import Any
-from pydantic import Basemodel, Field
+from pydantic import BaseModel, Field
 
-class FunctionReturn(Basemodel):
+class FunctionReturn(BaseModel):
     type: str
 
-class FunctionParametre(Basemodel):
+
+class FunctionParameter(BaseModel):
     type: str
 
-class
 
+class FunctionDefintion(BaseModel):
+    name: str
+    description: str
+    parameters: dict[str, FunctionParameter]
+    returns: FunctionReturn
+
+
+class Prompt(BaseModel):
+    prompt: str
+
+
+class FunctionCall(BaseModel):
+    prompt: str
+    name: str
+    parameters: dict[str, Any]
