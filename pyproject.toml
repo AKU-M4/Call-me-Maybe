@@ -1,16 +1,10 @@
 [project]
 name = "call-me-maybe"
-version = "1"
-description = ""
-authors = [
-    {name = "adkaid-s"}
-]
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "numpy (==2)"
+    "numpy>=2.2.6",
+    "pydantic>=2.13.3",
 ]
-
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
