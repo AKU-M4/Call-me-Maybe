@@ -2,9 +2,9 @@ venv:
 	python3 -m venv venv
 
 activate:
-	source venv/bin/activate
+	uv venv
 
-all: venv
+all: venv activate
 
 lint-strict:
 	flake8 . && mypy . --strict
