@@ -9,7 +9,7 @@ class FunctionParameter(BaseModel):
     type: str
 
 
-class FunctionDefintion(BaseModel):
+class FunctionDefinition(BaseModel):
     name: str
     description: str
     parameters: dict[str, FunctionParameter]

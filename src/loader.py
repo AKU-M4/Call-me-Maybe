@@ -1,9 +1,12 @@
 import json
 from pathlib import Path
-from pydantic import ValidationError, model_validate
-from .models import Prompt, FunctionDefintion
+from pydantic import ValidationError
+from models import Prompt, FunctionDefinition
 
 def load_function_definition(path: Path) -> list[FunctionDefinition]:
+    """
+    Loading function defintions and making 
+    """
     if not path.exists():
         raise FileNotFoundError(f"Function definition not found {path}")
     try:
@@ -12,7 +15,7 @@ def load_function_definition(path: Path) -> list[FunctionDefinition]:
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid Json in {path}: {e}!")
     try:
-        return [FunctionDefiniton.model_validate(item) for item in json_data]
+        return [FunctionDefinition.model_validate(item) for item in json_data]
     except ValidationError as e:
-        raise ValidationError(f"Schema error in {path}: {e}")
+        raise ValueError(f"Schema error in {path}: {e}")
     
