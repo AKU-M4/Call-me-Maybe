@@ -1,8 +1,8 @@
 import json
-from models import FunctionDefintion
+from src.models import FunctionDefinition
 
 
-def build_prompt(user_prompt: str, functions: list[FunctionDefintion]) -> str:
+def build_prompt(user_prompt: str, functions: list[FunctionDefinition]) -> str:
     """Building prompt
 
     Keyword arguments:

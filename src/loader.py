@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 from pydantic import ValidationError
-from models import Prompt, FunctionDefinition
+from src.models import Prompt, FunctionDefinition
 
 
-def load_function_definition(path: Path) -> list[FunctionDefinition]:
+def load_function_definitions(path: Path) -> list[FunctionDefinition]:
     """
     Loading function defintions and making sure everything works
     """
@@ -21,7 +21,7 @@ def load_function_definition(path: Path) -> list[FunctionDefinition]:
         raise ValueError(f"Schema error in {path}: {e}!")
 
 
-def load_prompt(path: Path) -> list[Prompt]:
+def load_prompts(path: Path) -> list[Prompt]:
     """
     Loading prompt and making sure everything works
     """
