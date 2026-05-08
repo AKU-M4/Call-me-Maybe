@@ -37,13 +37,13 @@ def main() -> None:
 
     # Load model and vocabulary once
     model = Small_LLM_Model()
-    vocab_path = model.get_path_to_vocabulary_json()
+    vocab_path = model.get_path_to_vocab_file()
 
     import json
     with open(vocab_path) as f:
         vocabulary = json.load(f)
 
-    decoder = JSONConstrainedDecoder(vocabulary)
+    decoder = JsonConstrainedDecoder(vocabulary)
     results = []
 
     for i, prompt in enumerate(prompts):

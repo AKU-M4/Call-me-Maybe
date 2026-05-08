@@ -18,7 +18,7 @@ def build_prompt(user_prompt: str, functions: list[FunctionDefinition]) -> str:
         for k, v in functions.parameters.items():
             parameters = f"{k}: {v.type}"
 
-        fn_descriptions = "\n".join(f"{fn.name}: {fn.desctiption}"
+        fn_descriptions = "\n".join(f"{fn.name}: {fn.description}"
                                     f"(parameters: {parameters}")
     return (
         f"You are a function calling assistant.\n"

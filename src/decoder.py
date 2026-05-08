@@ -17,7 +17,7 @@ class JsonConstrainedDecoder:
         self.id_to_token: dict[int, str] = {
             v: k for k, v in vocabulary.items()}
         self.token_to_id: dict[str, int] = vocabulary
-        self.vocab_size: int = len(vocab)
+        self.vocab_size: int = len(vocabulary)
 
     def get_valid_token_ids(
             self,
@@ -30,7 +30,7 @@ class JsonConstrainedDecoder:
         Return: return_description
         """
         valid_ids = []
-        for token_id, token_str in self.id_to_toekn.items():
+        for token_id, token_str in self.id_to_token.items():
             candidate = generated_so_far + token_str
             if self._is_valid_prefix(candidate, schema):
                 valid_ids.append(token_id)
@@ -48,7 +48,7 @@ class JsonConstrainedDecoder:
         Return: return_description
         """
         masked = np.full_like(logits, -np.inf)
-        valid_ids = self.get_valid_tokens(generated_so_far, schema)
+        valid_ids = self.get_valid_token_ids(generated_so_far, schema)
         for token_id in valid_ids:
             masked[token_id] = logits[token_id]
         return masked

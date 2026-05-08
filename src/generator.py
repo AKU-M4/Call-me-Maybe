@@ -7,7 +7,6 @@ from src.models import FunctionDefinition, FunctionCall
 
 MAX_NEW_TOKENS = 200
 
-
 def generate_function_call(
     user_prompt: str,
     functions: list[FunctionDefinition],
@@ -15,12 +14,6 @@ def generate_function_call(
     decoder: JsonConstrainedDecoder,
     ) -> FunctionCall:
     
-    """sumary_line
-    
-    Keyword arguments:
-    argument -- description
-    Return: return_description
-    """
     chosen_fn = _select_function(user_prompt, functions, model)
 
     schema = {
@@ -29,17 +22,18 @@ def generate_function_call(
     }
 
     prompt_to_feed = build_prompt(user_prompt, functions)
-    input_ids = model.encode(prompt_to_feed)
+    input_ids = model.encode(prompt_to_feed).tolist()[0] # SDK encode returns a 2D tensor, get the inner list
 
     generated_ids: list[int] = []
     generated_str = ""
 
     for _ in range(MAX_NEW_TOKENS):
-        import torch
-        tensor = torch.tensor([input_ids + generated_ids])
-        logits = model.get_logits_from_input_ids(tensor)[0, -1].np()
+        # FIX: Correct SDK usage. Pass list of ints, receive list of floats
+        current_input = input_ids + generated_ids
+        logits = model.get_logits_from_input_ids(current_input)
+        logits_np = np.array(logits) # Convert to numpy array for masking
 
-        masked = decoder.mask_logits(logits, generated_str, schema)
+        masked = decoder.mask_logits(logits_np, generated_str, schema)
         next_id = int(np.argmax(masked))
         next_token = decoder.id_to_token[next_id]
 
@@ -47,7 +41,8 @@ def generate_function_call(
         generated_str += next_token
 
         try:
-            parsed = json.loads(genetaed_str)
+            # FIX: Typo "genetaed_str" to "generated_str"
+            parsed = json.loads(generated_str)
             return FunctionCall(
                 prompt=user_prompt,
                 name=parsed["name"],
@@ -55,34 +50,31 @@ def generate_function_call(
             )
         except json.JSONDecodeError:
             continue
-    raise ValueError(f"Failed to generated valid JSON for prompt: {user_prompt}!")
+            
+    raise ValueError(f"Failed to generate valid JSON for prompt: {user_prompt}!")
 
 def _select_function(
     user_prompt: str,
     functions: list[FunctionDefinition],
     model: Small_LLM_Model
     ) -> FunctionDefinition:
-    """sumary_line
     
-    Keyword arguments:
-    argument -- description
-    Return: return_description
-    """
     fn_list = "\n".join(f"{fn.name}: {fn.description}" for fn in functions)
     prompt = (
-        f"Given this request: {user_prompt}"
-        f"Which function should be called?\n {fn_list}"
+        f"Given this request: {user_prompt}\n"
+        f"Which function should be called?\n {fn_list}\n"
         f"Answer with only the function name:"
     )
     
-    input_ids = model.encode(prompt)
-    import torch
+    input_ids = model.encode(prompt).tolist()[0]
     generated = ""
 
     for _ in range(50):
-        tensor = torch.tensor([input_ids]).tolist[0]
-        logits = model.get_logits_from_input_ids(tensor)[0, -1].np()
-        next_id = int(np.argmax(logits))
+        # FIX: Correct SDK usage
+        logits = model.get_logits_from_input_ids(input_ids)
+        logits_np = np.array(logits)
+        
+        next_id = int(np.argmax(logits_np))
         token = model.decode([next_id])
         generated += token
         input_ids = input_ids + [next_id]
