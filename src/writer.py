@@ -13,4 +13,4 @@ def write_results(result: list[FunctionCall], path: Path) -> None:
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
-        jsom.dumps([r.model_dump() for r in result], f, indent=2)
+        json.dump([r.model_dump() for r in result], f, indent=2)

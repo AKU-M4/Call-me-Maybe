@@ -8,7 +8,7 @@ from src.loader import load_function_definitions, load_prompts
 from src.generator import generate_function_call
 from src.decoder import JsonConstrainedDecoder
 from src.writer import write_results
-
+import traceback
 
 DEFAULT_FUNCTIONS = Path("data/input/functions_definition.json")
 DEFAULT_INPUT = Path("data/input/function_calling_tests.json")
@@ -55,6 +55,7 @@ def main() -> None:
             results.append(result)
             print(f"  → {result.name}({result.parameters})")
         except Exception as e:
+            traceback.print_exc()
             print(f"  [ERROR] {e}", file=sys.stderr)
 
     write_results(results, args.output)

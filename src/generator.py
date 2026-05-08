@@ -5,7 +5,7 @@ from src.decoder import JsonConstrainedDecoder
 from llm_sdk import Small_LLM_Model
 from src.models import FunctionDefinition, FunctionCall
 
-MAX_NEW_TOKENS = 200
+MAX_NEW_TOKENS = 150
 
 def generate_function_call(
     user_prompt: str,
@@ -14,6 +14,7 @@ def generate_function_call(
     decoder: JsonConstrainedDecoder,
     ) -> FunctionCall:
     
+    # 1. Select the function robustly
     chosen_fn = _select_function(user_prompt, functions, model)
 
     schema = {
@@ -22,36 +23,40 @@ def generate_function_call(
     }
 
     prompt_to_feed = build_prompt(user_prompt, functions)
-    input_ids = model.encode(prompt_to_feed).tolist()[0] # SDK encode returns a 2D tensor, get the inner list
+    input_ids = model.encode(prompt_to_feed).tolist()[0]
 
-    generated_ids: list[int] = []
-    generated_str = ""
+    # 2. Force the prefix to guarantee the name matches perfectly
+    forced_prefix = f'{{"name": "{chosen_fn.name}", "parameters": {{'
+    generated_ids = model.encode(forced_prefix).tolist()[0]
 
+    # 3. Constrained generation loop
     for _ in range(MAX_NEW_TOKENS):
-        # FIX: Correct SDK usage. Pass list of ints, receive list of floats
         current_input = input_ids + generated_ids
         logits = model.get_logits_from_input_ids(current_input)
-        logits_np = np.array(logits) # Convert to numpy array for masking
+        logits_np = np.array(logits)
 
+        generated_str = model.decode(generated_ids)
+        
         masked = decoder.mask_logits(logits_np, generated_str, schema)
         next_id = int(np.argmax(masked))
-        next_token = decoder.id_to_token[next_id]
-
         generated_ids.append(next_id)
-        generated_str += next_token
+        
+        new_generated_str = model.decode(generated_ids)
+        
+        # Stop instantly when the JSON object fully closes
+        if new_generated_str.count('{') > 0 and new_generated_str.count('{') == new_generated_str.count('}'):
+            try:
+                parsed = json.loads(new_generated_str)
+                return FunctionCall(
+                    prompt=user_prompt,
+                    name=parsed["name"],
+                    parameters=parsed["parameters"] 
+                )
+            except json.JSONDecodeError:
+                pass
 
-        try:
-            # FIX: Typo "genetaed_str" to "generated_str"
-            parsed = json.loads(generated_str)
-            return FunctionCall(
-                prompt=user_prompt,
-                name=parsed["name"],
-                parameters=parsed["parameters"] 
-            )
-        except json.JSONDecodeError:
-            continue
-            
     raise ValueError(f"Failed to generate valid JSON for prompt: {user_prompt}!")
+
 
 def _select_function(
     user_prompt: str,
@@ -59,25 +64,23 @@ def _select_function(
     model: Small_LLM_Model
     ) -> FunctionDefinition:
     
-    fn_list = "\n".join(f"{fn.name}: {fn.description}" for fn in functions)
+    fn_list = "\n".join(f"- {fn.name}: {fn.description}" for fn in functions)
     prompt = (
-        f"Given this request: {user_prompt}\n"
-        f"Which function should be called?\n {fn_list}\n"
-        f"Answer with only the function name:"
+        f"User request: {user_prompt}\n"
+        f"Available functions:\n{fn_list}\n"
+        f"Question: Which function should be called?\n"
+        f"Answer: The function to call is "
     )
     
     input_ids = model.encode(prompt).tolist()[0]
     generated = ""
 
-    for _ in range(50):
-        # FIX: Correct SDK usage
+    for _ in range(25):
         logits = model.get_logits_from_input_ids(input_ids)
-        logits_np = np.array(logits)
-        
-        next_id = int(np.argmax(logits_np))
+        next_id = int(np.argmax(np.array(logits)))
         token = model.decode([next_id])
         generated += token
-        input_ids = input_ids + [next_id]
+        input_ids.append(next_id)
 
         for fn in functions:
             if fn.name in generated:
