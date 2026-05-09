@@ -1,16 +1,30 @@
-PHONY: install, lint-strict, lint, 
+PYTHON = uv run python
+FLAKE8 = uv run flake8
+MYPY = uv run mypy
+SRC_DIR = src
 
-all: venv activate
+install:
+	uv sync
 
-venv:
-	python3 -m venv venv
+run: 
+	$(PYTHON) -m $(SRC_DIR)
 
-activate:
-	uv venv
+debug: 
+	$(PYTHON) -m pdb -m $(SRC_DIR)
+ 
+clean:
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	rm -rf .mypy_cache
+	rm -rf .pytest_cahce
 
-install: $(all)
-	cd llm_sdk && uv tree
-
+lint:
+	$(FLAKE8) $(SRC_DIR)
+	$(MYPY) --warn-return-any --warn-unused-ignores \\
+	--ignore-missing-imports --disallow-untyped-defs \\
+	--check-untyped-defs $(SRC_DIR)
 
 lint-strict:
-	flake8 . && mypy . --strict
+	$(FLAKE8) $(SRC)
+	$(MYPY) -strict $(SRC_DIR)
+
+PHONY: install, lint-strict, lint, clean, debug, run, install

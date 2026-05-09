@@ -1,13 +1,16 @@
 from src.models import FunctionDefinition
 
+
 def build_prompt(user_prompt: str, functions: list[FunctionDefinition]) -> str:
     fn_descriptions_list = []
-    
+
     for fn in functions:
-        parameters = ", ".join(f'"{k}": {v.type}' for k, v in fn.parameters.items())
+        parameters = ", ".join(
+            f'"{k}": {v.type}' for k, v in fn.parameters.items())
         schema_str = f'{{"name": "{fn.name}", "parameters": {{{parameters}}}}}'
-        fn_descriptions_list.append(f"- {fn.name}: {fn.description}\n  (Expected Schema: {schema_str})")
-        
+        fn_descriptions_list.append(
+            f"- {fn.name}: {fn.description}\n  (Expected Schema: {schema_str})")
+
     fn_descriptions = "\n".join(fn_descriptions_list)
 
     return (

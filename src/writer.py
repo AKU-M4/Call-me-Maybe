@@ -3,9 +3,10 @@ from typing import Any
 from pathlib import Path
 from src.models import FunctionCall
 
+
 def write_results(result: list[FunctionCall], path: Path) -> None:
     """ Function that dumps the result into the output json file
-    
+
     Keyword arguments:
     arguments: result = list of general function calls
                path: Output file

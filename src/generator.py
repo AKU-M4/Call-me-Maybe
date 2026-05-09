@@ -7,13 +7,14 @@ from src.models import FunctionDefinition, FunctionCall
 
 MAX_NEW_TOKENS = 150
 
+
 def generate_function_call(
     user_prompt: str,
     functions: list[FunctionDefinition],
     model: Small_LLM_Model,
     decoder: JsonConstrainedDecoder,
-    ) -> FunctionCall:
-    
+) -> FunctionCall:
+
     # 1. Select the function robustly
     chosen_fn = _select_function(user_prompt, functions, model)
 
@@ -36,13 +37,13 @@ def generate_function_call(
         logits_np = np.array(logits)
 
         generated_str = model.decode(generated_ids)
-        
+
         masked = decoder.mask_logits(logits_np, generated_str, schema)
         next_id = int(np.argmax(masked))
         generated_ids.append(next_id)
-        
+
         new_generated_str = model.decode(generated_ids)
-        
+
         # Stop instantly when the JSON object fully closes
         if new_generated_str.count('{') > 0 and new_generated_str.count('{') == new_generated_str.count('}'):
             try:
@@ -50,20 +51,21 @@ def generate_function_call(
                 return FunctionCall(
                     prompt=user_prompt,
                     name=parsed["name"],
-                    parameters=parsed["parameters"] 
+                    parameters=parsed["parameters"]
                 )
             except json.JSONDecodeError:
                 pass
 
-    raise ValueError(f"Failed to generate valid JSON for prompt: {user_prompt}!")
+    raise ValueError(
+        f"Failed to generate valid JSON for prompt: {user_prompt}!")
 
 
 def _select_function(
     user_prompt: str,
     functions: list[FunctionDefinition],
     model: Small_LLM_Model
-    ) -> FunctionDefinition:
-    
+) -> FunctionDefinition:
+
     fn_list = "\n".join(f"- {fn.name}: {fn.description}" for fn in functions)
     prompt = (
         f"User request: {user_prompt}\n"
@@ -71,7 +73,7 @@ def _select_function(
         f"Question: Which function should be called?\n"
         f"Answer: The function to call is "
     )
-    
+
     input_ids = model.encode(prompt).tolist()[0]
     generated = ""
 
@@ -85,5 +87,5 @@ def _select_function(
         for fn in functions:
             if fn.name in generated:
                 return fn
-        
+
     return functions[0]

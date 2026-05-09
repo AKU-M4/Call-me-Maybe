@@ -67,5 +67,20 @@
     "returns": {
       "type": "string"
     }
+  },
+  {
+    "name": "fn_who_is_the_idiot",
+    "description": "Recognizing who's the idiot in the sentence.",
+    "parameters": {
+      "idiot": {
+        "type": "string"
+      },
+      "not_idiot": {
+        "type": "string"
+      }
+    },
+    "returns": {
+      "type": "string"
+    }
   }
 ]
