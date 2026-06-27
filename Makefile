@@ -2,6 +2,8 @@ PYTHON = uv run python
 FLAKE8 = uv run flake8
 MYPY = uv run mypy
 SRC_DIR = src
+UV_CACHE = export UV_CACHE="/home/adkaid-s/goinfre/uv_cache"
+HF_HOME = export HF_HOME="/goinfre/adkaid-s/huggingface_cache"
 
 install:
 	uv sync
@@ -26,5 +28,11 @@ lint:
 lint-strict:
 	$(FLAKE8) $(SRC)
 	$(MYPY) -strict $(SRC_DIR)
+
+hf_home:
+	$(HF_HOME)
+
+uv_cache:
+	$(UV_CACHE)
 
 PHONY: install, lint-strict, lint, clean, debug, run, install

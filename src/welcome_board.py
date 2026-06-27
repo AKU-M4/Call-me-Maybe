@@ -35,8 +35,8 @@ def welcome_board():
             # "OFF" frame: Print empty lines so the terminal doesn't jump around
             print("\n" * 16) 
             
-        # 0.1 is a great speed for a glitchy flicker
-        time.sleep(0.25)
+        # 0.2 is a great speed for a glitchy flicker
+        time.sleep(0.2)
         
     clear_screen()
     # Print it one last time so it stays on the screen when the flicker is done

@@ -82,5 +82,20 @@
     "returns": {
       "type": "string"
     }
+  },
+    {
+    "name": "fn_who_passed_exam",
+    "description": "Who passed the exam based on points.",
+    "parameters": {
+      "passed": {
+        "type": "string"
+      },
+      "not_passed": {
+        "type": "string"
+      }
+    },
+    "returns": {
+      "type": "string"
+    }
   }
 ]
