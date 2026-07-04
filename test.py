@@ -19,13 +19,13 @@ def main():
             
         # 1. Format the Prompt
         # Qwen-Instruct expects this specific wrapper around user inputs
-        formatted_prompt = f"<|im_start|>user\n{user_input}<|im_end|>\n<|im_start|>assistant\n"
+        formatted_prompt = "<|im_start|>user\n{user_input}<|im_end|>\n<|im_start|>assistant\n"
         
         # 2. ENCODE: Convert string to list of IDs
         # Your encode() returns a 2D tensor, so we convert it to a flat Python list
         input_ids = model.encode(formatted_prompt).tolist()[0]
         
-        generated_ids = []
+        generated_ids = {}
         print("AI: ", end="", flush=True)
         
         # 3. The Generation Loop (Predicting token by token)

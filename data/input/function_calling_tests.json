@@ -37,5 +37,8 @@
   },
   {
     "prompt": "tell me who failed in the exam simo or adam, to pass the exam you need 50 in points, simo: 20points, adam: 60points"
+  },
+  {
+    "prompt": "exit"
   }
 ]
