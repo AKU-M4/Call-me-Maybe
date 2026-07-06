@@ -33,15 +33,15 @@ def generate_function_call(
     # 3. Constrained generation loop
     for _ in range(MAX_NEW_TOKENS):
         current_input = input_ids + generated_ids
+       ##print(generated_ids)
         logits = model.get_logits_from_input_ids(current_input)
         logits_np = np.array(logits)
 
         generated_str = model.decode(generated_ids)
-
         masked = decoder.mask_logits(logits_np, generated_str, schema)
         next_id = int(np.argmax(masked))
         generated_ids.append(next_id)
-
+        
         new_generated_str = model.decode(generated_ids)
 
         # Stop instantly when the JSON object fully closes
@@ -79,10 +79,12 @@ def _select_function(
 
     for _ in range(25):
         logits = model.get_logits_from_input_ids(input_ids)
+
         next_id = int(np.argmax(np.array(logits)))
         token = model.decode([next_id])
         generated += token
         input_ids.append(next_id)
+        print(generated)
 
         for fn in functions:
             if fn.name in generated:

@@ -20,18 +20,16 @@ class JsonConstrainedDecoder:
 
         # Track our JSON state
         depth = generated_so_far.count('{') - generated_so_far.count('}')
-
         # Strict whitelist: Only allow characters that belong in a JSON payload
-        allowed_chars = set('abcdefghijklmnopqrstuvwxyzABCDEFG'
-                            'HIJKLMNOPQRSTUVWXYZ0123456789_:,."{} \n-+[]')
+        #allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFG'"
+         #                   'HIJKLMNOPQRSTUVWXYZ0123456789_:,.\\ \\\\*/\\"}{ \n-+[]()')
 
         for token_id in sorted_indices[:150]:
             token_str = self.id_to_token.get(token_id, "")
 
             # Rule 1: No invalid characters (prevents the model from writing random text)
-            if not all(c in allowed_chars for c in token_str):
-                continue
-
+            ##if not all(c in allowed_chars for c in token_str):
+                ##continue
             # Rule 2: Prevent syntax errors (never close a brace that isn't open)
             new_open = token_str.count('{')
             new_close = token_str.count('}')
@@ -58,5 +56,4 @@ class JsonConstrainedDecoder:
         # Failsafe: if the model backs itself into a corner, pick the safest token to avoid crashing
         if np.max(masked) == -np.inf:
             masked[sorted_indices[0]] = logits[sorted_indices[0]]
-
         return masked

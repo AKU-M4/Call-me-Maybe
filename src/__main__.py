@@ -57,6 +57,7 @@ def main() -> None:
                 result = generate_function_call(
                     prompt.prompt, functions, model, decoder
                 )
+                print(result)
                 results.append(result)
                 print(f"  → {result.name}({result.parameters})")
             except Exception as e:
