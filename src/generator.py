@@ -33,7 +33,6 @@ def generate_function_call(
     # 3. Constrained generation loop
     for _ in range(MAX_NEW_TOKENS):
         current_input = input_ids + generated_ids
-       ##print(generated_ids)
         logits = model.get_logits_from_input_ids(current_input)
         logits_np = np.array(logits)
 
@@ -41,13 +40,22 @@ def generate_function_call(
         masked = decoder.mask_logits(logits_np, generated_str, schema)
         next_id = int(np.argmax(masked))
         generated_ids.append(next_id)
-        
-        new_generated_str = model.decode(generated_ids)
+
+        n_str = model.decode(generated_ids)
 
         # Stop instantly when the JSON object fully closes
-        if new_generated_str.count('{') > 0 and new_generated_str.count('{') == new_generated_str.count('}'):
+        if n_str.count('{') > 0 and n_str.count('{') == n_str.count('}'):
             try:
-                parsed = json.loads(new_generated_str)
+                parsed = json.loads(n_str)
+
+                # --- FIX: Force float casting based on schema ---
+                for p_name, p_type in schema["parameters"].items():
+                    if p_type == "number" and p_name in parsed["parameters"]:
+                        parsed["parameters"][p_name] = float(
+                            parsed["parameters"][p_name]
+                        )
+                # ------------------------------------------------
+
                 return FunctionCall(
                     prompt=user_prompt,
                     name=parsed["name"],
@@ -57,7 +65,8 @@ def generate_function_call(
                 pass
 
     raise ValueError(
-        f"Failed to generate valid JSON for prompt: {user_prompt}!")
+        f"Failed to generate valid JSON for prompt: {user_prompt}!"
+    )
 
 
 def _select_function(
@@ -84,7 +93,6 @@ def _select_function(
         token = model.decode([next_id])
         generated += token
         input_ids.append(next_id)
-        print(generated)
 
         for fn in functions:
             if fn.name in generated:

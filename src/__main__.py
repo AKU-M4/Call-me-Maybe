@@ -1,6 +1,9 @@
 # src/__main__.py
 import sys
 import argparse
+import time
+import json
+import traceback
 from pathlib import Path
 from llm_sdk import Small_LLM_Model
 from src.loader import load_function_definitions, load_prompts
@@ -8,7 +11,7 @@ from src.generator import generate_function_call
 from src.decoder import JsonConstrainedDecoder
 from src.writer import write_results
 from src.welcome_board import welcome_board
-import traceback
+from src.models import FunctionCall
 
 DEFAULT_FUNCTIONS = Path("data/input/functions_definition.json")
 DEFAULT_INPUT = Path("data/input/function_calling_tests.json")
@@ -28,10 +31,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """Main entry point for the function calling pipeline."""
 
+    # 1. Start timer
+    start_time = time.perf_counter()
+
     welcome_board()
     start_or_exit = input("Press |1| if you want to continue\n"
                           "Or \nPress |2| if you want to exit! : ")
     args = parse_args()
+
     if start_or_exit == '1':
         try:
             functions = load_function_definitions(args.functions_definition)
@@ -44,7 +51,6 @@ def main() -> None:
         model = Small_LLM_Model()
         vocab_path = model.get_path_to_vocab_file()
 
-        import json
         with open(vocab_path) as f:
             vocabulary = json.load(f)
 
@@ -64,10 +70,22 @@ def main() -> None:
                 traceback.print_exc()
                 print(f"  [ERROR] {e}", file=sys.stderr)
 
+                results.append(FunctionCall(
+                    prompt=prompt.prompt,
+                    name="failed",
+                    parameters={}
+                ))
+
         write_results(results, args.output)
         print(f"\nDone. Results written to {args.output}")
+
+        # 2. End timer and print
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        print(f"\nTotal execution time: {elapsed_time:.4f} seconds")
+
     else:
-        print("Sytem Exits!")
+        print("System Exits!")
 
 
 if __name__ == "__main__":

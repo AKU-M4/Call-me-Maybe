@@ -10,6 +10,7 @@ dependencies = [
     "pydantic>=2.13.3",
     "numpy>=2.2.6",
     "accelerate>=1.13.0",
+    "flake8>=7.3.0",
 ]
 
 [build-system]
