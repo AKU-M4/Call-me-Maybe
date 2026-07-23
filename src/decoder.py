@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 from typing import Any
 
 
@@ -12,10 +13,10 @@ class JsonConstrainedDecoder:
 
     def mask_logits(
         self,
-        logits: np.ndarray,
+        logits: npt.NDArray[np.float64],
         generated_so_far: str,
         schema: dict[str, Any]
-    ) -> np.ndarray:
+    ) -> npt.NDArray[np.float64]:
 
         masked = np.full_like(logits, -np.inf)
         sorted_indices = np.argsort(logits)[::-1]
@@ -38,19 +39,20 @@ class JsonConstrainedDecoder:
                 candidate = generated_so_far + token_str
                 missing_key = False
 
-                for req_key in schema.get("parameters", {}).keys():
-                    if f'"{req_key}"' not in candidate:
-                        missing_key = True
-                        break
-
+                if '"parameters"' in candidate:
+                        params_part = candidate.split('"parameters"')[-1]
+                        for req_key in schema.get("parameters", {}).keys():
+                            if f'"{req_key}"' not in params_part:
+                                missing_key = True
+                                break
+                else:
+                    missing_key = True
                 # Reject the closing bracket if parameters are missing,
                 # forcing it to generate the key
                 if missing_key:
                     continue
 
-            # --- THE FIX: This must be OUTSIDE the if statement! ---
             masked[token_id] = logits[token_id]
-            # -------------------------------------------------------
 
         # Failsafe: if the model backs itself into a corner, pick the safest
         # token to avoid crashing

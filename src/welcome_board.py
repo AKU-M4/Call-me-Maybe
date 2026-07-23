@@ -2,12 +2,12 @@ import time
 import os
 
 
-def clear_screen():
+def clear_screen() -> None:
     # This works for both Windows ('cls') and Mac/Linux/WSL ('clear')
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def welcome_board():
+def welcome_board() -> None:
     art = r"""
                 .---------------------------.
                 |   Can you call me maybe   |
@@ -40,4 +40,5 @@ def welcome_board():
     print("System booting...\n")
 
 
-welcome_board()
+if __name__ == "__main__":
+    welcome_board()

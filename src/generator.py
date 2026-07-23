@@ -1,5 +1,6 @@
 import json
 import numpy as np
+from typing import Any, cast
 from src.formated_prompt import build_prompt
 from src.decoder import JsonConstrainedDecoder
 from llm_sdk import Small_LLM_Model
@@ -47,14 +48,14 @@ def generate_function_call(
         if n_str.count('{') > 0 and n_str.count('{') == n_str.count('}'):
             try:
                 parsed = json.loads(n_str)
+                parameters_dict = cast(
+                    dict[str, Any], schema.get("parameters", {}))
 
-                # --- FIX: Force float casting based on schema ---
-                for p_name, p_type in schema["parameters"].items():
+                for p_name, p_type in parameters_dict.items():
                     if p_type == "number" and p_name in parsed["parameters"]:
                         parsed["parameters"][p_name] = float(
                             parsed["parameters"][p_name]
                         )
-                # ------------------------------------------------
 
                 return FunctionCall(
                     prompt=user_prompt,
@@ -88,7 +89,6 @@ def _select_function(
 
     for _ in range(25):
         logits = model.get_logits_from_input_ids(input_ids)
-
         next_id = int(np.argmax(np.array(logits)))
         token = model.decode([next_id])
         generated += token
