@@ -31,7 +31,6 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """Main entry point for the function calling pipeline."""
 
-    # 1. Start timer
 
     welcome_board()
     start_or_exit = input("Press |1| if you want to continue\n"
@@ -55,6 +54,7 @@ def main() -> None:
 
         decoder = JsonConstrainedDecoder(vocabulary)
         results = []
+        # 1. Start timer
         start_time = time.perf_counter()
 
         for i, prompt in enumerate(prompts):
