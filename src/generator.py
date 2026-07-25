@@ -52,10 +52,20 @@ def generate_function_call(
                     dict[str, Any], schema.get("parameters", {}))
 
                 for p_name, p_type in parameters_dict.items():
-                    if p_type == "number" and p_name in parsed["parameters"]:
+                    if p_name not in parsed["parameters"]:
+                        continue
+                    if p_type == "number":
                         parsed["parameters"][p_name] = float(
                             parsed["parameters"][p_name]
                         )
+                    elif p_name == "replacement":
+                        value = parsed["parameters"][p_name]
+                        if isinstance(value, str):
+                            parsed["parameters"][p_name] = value.strip()
+                    elif p_name == "regex":
+                        value = parsed["parameters"][p_name]
+                        if isinstance(value, str) and value.isdigit():
+                            parsed["parameters"][p_name] = r"\d+"
 
                 return FunctionCall(
                     prompt=user_prompt,
