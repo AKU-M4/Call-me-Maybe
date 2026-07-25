@@ -40,11 +40,11 @@ class JsonConstrainedDecoder:
                 missing_key = False
 
                 if '"parameters"' in candidate:
-                        params_part = candidate.split('"parameters"')[-1]
-                        for req_key in schema.get("parameters", {}).keys():
-                            if f'"{req_key}"' not in params_part:
-                                missing_key = True
-                                break
+                    params_part = candidate.split('"parameters"')[-1]
+                    for req_key in schema.get("parameters", {}).keys():
+                        if f'"{req_key}"' not in params_part:
+                            missing_key = True
+                            break
                 else:
                     missing_key = True
                 # Reject the closing bracket if parameters are missing,
