@@ -31,7 +31,6 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     """Main entry point for the function calling pipeline."""
 
-
     welcome_board()
     start_or_exit = input("Press |1| if you want to continue\n"
                           "Or \nPress |2| if you want to exit! : ")

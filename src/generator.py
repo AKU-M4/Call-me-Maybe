@@ -15,6 +15,31 @@ def generate_function_call(
     model: Small_LLM_Model,
     decoder: JsonConstrainedDecoder,
 ) -> FunctionCall:
+    """Translate a natural-language request into a structured call.
+
+    Selects the target function with the model, force-feeds the
+    function name into the JSON prefix, then generates the parameter
+    values token-by-token under constrained decoding so the result is
+    always valid, schema-complete JSON. A light post-processing step
+    then coerces numeric strings to floats and normalizes two known
+    model quirks on string parameters: stray padding around
+    "replacement" values, and literal-digit "regex" values that
+    should generalize to a digit pattern.
+
+    Args:
+        user_prompt: The natural-language request to fulfill.
+        functions: All function definitions the model can choose from.
+        model: The loaded small LLM used for generation.
+        decoder: The constrained decoder used to mask invalid tokens.
+
+    Returns:
+        The generated FunctionCall, with a valid function name and
+        correctly-typed parameters.
+
+    Raises:
+        ValueError: If no valid JSON could be generated within the
+            token budget.
+    """
 
     # 1. Select the function robustly
     chosen_fn = _select_function(user_prompt, functions, model)
@@ -85,6 +110,23 @@ def _select_function(
     functions: list[FunctionDefinition],
     model: Small_LLM_Model
 ) -> FunctionDefinition:
+    """Pick which function the model should call for this request.
+
+    Feeds a short free-text prompt and greedily generates tokens
+    until a known function name appears in the output. Selection is
+    done purely by the model's own generation, not by heuristics or
+    string-matching on the user's prompt.
+
+    Args:
+        user_prompt: The natural-language request to fulfill.
+        functions: All function definitions the model can choose from.
+        model: The loaded small LLM used for generation.
+
+    Returns:
+        The chosen FunctionDefinition, or the first function in the
+        list as a fallback if none was recognized within the token
+        budget.
+    """
 
     fn_list = "\n".join(f"- {fn.name}: {fn.description}" for fn in functions)
     prompt = (

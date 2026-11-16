@@ -4,7 +4,22 @@ from typing import Any
 
 
 class JsonConstrainedDecoder:
+    """Mask an LLM's next-token logits so generation stays valid JSON.
+
+    At every generation step, the decoder rejects any token that would
+    either break JSON syntax (e.g. closing a brace that was never
+    opened) or close the parameters object before every required
+    schema key has been generated. This guarantees the model can only
+    ever produce structurally valid, schema-complete JSON.
+    """
+
     def __init__(self, vocabulary: dict[str, int]) -> None:
+        """Build the token-id-to-string lookup used for masking.
+
+        Args:
+            vocabulary: Mapping of raw tokenizer strings to their
+                token ids, as loaded from the model's vocab file.
+        """
         # Clean tokenizer artifacts to prevent parsing errors
         self.id_to_token: dict[int, str] = {
             v: k.replace("Ġ", " ").replace("Ċ", "\n")
@@ -17,6 +32,19 @@ class JsonConstrainedDecoder:
         generated_so_far: str,
         schema: dict[str, Any]
     ) -> npt.NDArray[np.float64]:
+        """Return a copy of logits with invalid next-tokens set to -inf.
+
+        Args:
+            logits: Raw next-token logits from the model.
+            generated_so_far: The JSON text generated up to this point.
+            schema: Dict with a "parameters" key listing the required
+                parameter names for the current function call.
+
+        Returns:
+            A logits array of the same shape where every token that
+            would break JSON structure or skip a required parameter
+            key has been masked to -inf, leaving only valid choices.
+        """
 
         masked = np.full_like(logits, -np.inf)
         sorted_indices = np.argsort(logits)[::-1]

@@ -3,11 +3,16 @@ import os
 
 
 def clear_screen() -> None:
+    """Clear the terminal screen, cross-platform.
+
+    Uses 'cls' on Windows and 'clear' on Mac/Linux/WSL.
+    """
     # This works for both Windows ('cls') and Mac/Linux/WSL ('clear')
     os.system('cls' if os.name == 'nt' else 'clear')
 
 
 def welcome_board() -> None:
+    """Print an animated ASCII welcome banner before the pipeline starts."""
     art = r"""
                 .---------------------------.
                 |   Can you call me maybe   |
